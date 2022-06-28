@@ -1,0 +1,59 @@
+// Import the functions you need from the SDKs you need
+import { initializeApp } from "firebase/app";
+import {
+  getAuth,
+  signInWithRedirect,
+  signInWithPopup,
+  GoogleAuthProvider,
+  createUserWithEmailAndPassword
+} from "firebase/auth";
+import { getFirestore, doc, getDoc, setDoc } from "firebase/firestore";
+
+// Your web app's Firebase configuration
+// For Firebase JS SDK v7.20.0 and later, measurementId is optional
+const firebaseConfig = {
+  apiKey: "AIzaSyCDReQ60gF2Z74T88teIpr08zQsQ2OL2Rs",
+  authDomain: "crwn-clothing-db-e9996.firebaseapp.com",
+  projectId: "crwn-clothing-db-e9996",
+  storageBucket: "crwn-clothing-db-e9996.appspot.com",
+  messagingSenderId: "678558881491",
+  appId: "1:678558881491:web:882fd3e9fa0c9f9ba7a626",
+  measurementId: "G-4LGQGY2JHX",
+};
+
+// Initialize Firebase
+const firebaseApp = initializeApp(firebaseConfig);
+const provider = new GoogleAuthProvider();
+provider.setCustomParameters({
+  prompt: "select_account",
+});
+export const auth = getAuth();
+export const signInWithGooglePopup = () => signInWithPopup(auth, provider);
+export const signInWithGoogleRedirect = () => signInWithRedirect(auth, provider);
+export const db = getFirestore();
+export const createUserDocumentFromAuth = async (userAuth, additionalInformation={displayName: 'illuminati'}) => {
+  if (!userAuth) return;
+  const userDocRef = doc(db, 'users', userAuth.uid);
+  console.log('userDocRef', userDocRef)
+  const userSnapshot = await getDoc(userDocRef);
+  console.log('userSnapshot', userSnapshot)
+  if (!userSnapshot.exists()) {
+    const {displayName, email} = userAuth;
+    const createdAt = new Date();
+    try {
+      await setDoc(userDocRef, {
+        displayName,
+        email,
+        createdAt,
+        ...additionalInformation
+      })
+    } catch (error) {
+      console.log('error creating the user', error.message)  
+    }
+  } 
+  return userDocRef
+}
+export const createAuthUserWithEmailAndPassword = async (email, password) => {
+  if (!email || !password) return;
+  return await createUserWithEmailAndPassword(auth, email, password);
+}
