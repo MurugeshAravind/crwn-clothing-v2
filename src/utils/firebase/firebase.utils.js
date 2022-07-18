@@ -49,7 +49,7 @@ export const addCollectionAndDocuments = async (collectionKey, objectsToAdd) => 
   const batch = writeBatch(db);
   objectsToAdd.forEach((object) => {
     const docRef = doc(collectionRef, object.title.toLowerCase())
-    batch.set(docRef, object)
+    batch.set(docRef, object) 
   })
   await batch.commit()
   console.log('done')
@@ -57,13 +57,8 @@ export const addCollectionAndDocuments = async (collectionKey, objectsToAdd) => 
 export const getCategoriesAndDocuments = async () => {
   const collectionRef = collection(db, 'categories');
   const q = query(collectionRef);
-  const querySnapshot = await getDocs(q)
-  const categoryMap = querySnapshot.docs.reduce((acc, docSnapshot) => {
-    const {title, items} = docSnapshot.data();
-    acc[title.toLowerCase()] = items;
-    return acc;
-  }, {})
-  return categoryMap;
+  const querySnapshot = await getDocs(q);
+  return querySnapshot.docs.map(docSnapshot => docSnapshot.data());
 }
 export const createUserDocumentFromAuth = async (
   userAuth,
@@ -101,3 +96,13 @@ export const signInAuthUserWithEmailAndPassword = async (email, password) => {
 export const signOutUser = async () => await signOut(auth);
 export const onAuthStateChangedListener = (callback) =>
   onAuthStateChanged(auth, callback);
+export const getCurrentUser = () => {
+  return new Promise((resolve, reject) => {
+    const unsubscribe = onAuthStateChanged(auth, (userAuth) => {
+      unsubscribe();
+      resolve(userAuth)
+    },
+    reject
+    )
+  })
+}
